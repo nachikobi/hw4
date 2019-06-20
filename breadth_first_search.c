@@ -11,7 +11,6 @@ const int N = 49;
 
 int ffrelation[N][N];
 int flag[N];
-int step;
 
 void relation_check() {
   int from, to;
@@ -72,10 +71,7 @@ void path_search(int from, int to, int depth) {
   for (int i = 0; i < N; i++) {
     if (ffrelation[from][i]==1 && flag[i]==-1) {
       flag[i]=depth+1;
-      if (i==to) {
-        step = depth+1;
-        return;
-      }
+      if (i==to) return;
       QUEUEenqueue(i);
     }
   }
@@ -99,6 +95,6 @@ int main() {
 
   relation_check(); //ff関係を2次元配列に格納
   path_search(from, to, 0);  //幅優先探索
-  printf("%dから%dへは%dステップです\n", from, to, step);
+  printf("%dから%dへは%dステップです\n", from, to, flag[to]);
   return 0;
 }
