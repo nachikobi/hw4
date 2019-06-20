@@ -22,6 +22,7 @@ void relation_check() {
   while (fscanf(fp, "%d %d", &from, &to)!=EOF) {
     ffrelation[from][to]=1;
   }
+  fclose(fp);
 }
 
 
