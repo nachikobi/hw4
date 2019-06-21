@@ -11,7 +11,7 @@
 const int N = 49;
 
 int ffrelation[N][N];
-int flag[N];
+int distance[N];
 
 void relation_check() {
   int from, to;
@@ -29,18 +29,17 @@ void relation_check() {
 
 int name_to_num() {
   int num=-1, id;
-  char *name, *nickname;
+  char name[10], nickname[10];
 
   printf("name: ");
   scanf("%s", name);
 
   FILE *fp;
   if ((fp=fopen("nicknames.txt","r"))==NULL) {
-    fprintf(stderr, "links.txtのオープンに失敗しました\n");
+    fprintf(stderr, "nicknames.txtのオープンに失敗しました\n");
     exit(2);
   }
-  while (fscanf(fp, "%d	%s", &id, nickname)!=EOF) { //ここでエラー
-    printf("now nickname: %s\n", nickname);
+  while (fscanf(fp, "%d	%s", &id, nickname)!=EOF) {
     if (strcmp(name, nickname)==0) {
       num = id;
       break;
@@ -53,6 +52,24 @@ int name_to_num() {
   } else return num;
 }
 
+void num_to_name(int num) {
+  int id;
+  char name[10], nickname[10];
+  FILE *fp;
+  if ((fp=fopen("nicknames.txt","r"))==NULL) {
+    fprintf(stderr, "nicknames.txtのオープンに失敗しました\n");
+    exit(2);
+  }
+  while (fscanf(fp, "%d	%s", &id, nickname)!=EOF) {
+    if (id==num) {
+      strcpy(name, nickname);
+      break;
+    }
+  }
+  fclose(fp);
+  printf("%s ", name);
+  return;
+}
 
 typedef struct QUEUEnode *link;
 struct QUEUEnode { //幅優先探索で用いるキューの構造体
@@ -98,55 +115,49 @@ int QUEUEdequeue() {
 
 void path_search(int from, int depth) {
   for (int i = 0; i < N; i++) {
-    if (ffrelation[from][i]==1 && flag[i]==-1) {
-      flag[i]=depth+1;
+    if (ffrelation[from][i]==1 && distance[i]==-1) {
+      distance[i]=depth+1;
       QUEUEenqueue(i);
     }
   }
   int num = QUEUEdequeue();
   if (num==-1) return;
-  path_search(num, flag[num]);
+  path_search(num, distance[num]);
 }
 
 void farthest_node_search(int from) {
-  int max = flag[0];
-  int farthest_node[N];
+  int max = distance[0];
+  char name[10];
+
+  /* 最長距離探索 */
   for (int i = 0; i < N; i++) {
-    farthest_node[i]=-1;
-  }
-  int j=0;
-  for (int i = 0; i < N; i++) {
-    if (flag[i]>=max) {
-      max=flag[i];
-      farthest_node[j]=i;
-      j++;
+    if (distance[i]>max) {
+      max=distance[i];
     }
   }
-  printf("%dから最も遠いノードは", from);
-  for (int i = 0; farthest_node[i]!=-1; i++) {
-    printf("%d ", farthest_node[i]);
+
+  /* 出力 */
+  num_to_name(from);
+  printf("から最も遠いノードは");
+  for (int i = 0; i < N; i++) {
+    if (distance[i]==max) {
+      num_to_name(i);
+    }
   }
   printf("で、%dステップかかります\n", max);
 }
 
 int main() {
   int from=0;
-  char *name;
-  /* 2次元配列ffrelationの初期化 */
+  /* 配列distanceを-1に初期化 */
   for (int i = 0; i < N; i++) {
-    for (int j = 0; j < N; j++) {
-      ffrelation[i][j]=0;
-    }
+    distance[i]=-1;
   }
-  /* 配列flagの初期化 */
-  for (int i = 0; i < N; i++) {
-    flag[i]=-1;
-  }
-  flag[from]=0;
+  distance[from]=0;
 
   relation_check(); //ff関係を2次元配列に格納
   from = name_to_num(); //名前を入力&名前を番号に変換
   path_search(from, 0);  //幅優先探索
-  farthest_node_search(from); //最も遠い頂点を探す
+  farthest_node_search(from); //最も遠い頂点を探し、出力
   return 0;
 }
